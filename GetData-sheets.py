@@ -4,9 +4,20 @@ import json
 import pandas as pd
 import re
 
+import pickle
+
+
 """
-need to enable the API in the google cloud platform
+need to enable the API in the google cloud platform: 
+
+Installs: 
+    not neaded -> pip install --upgrade google-api-python-client google-auth-httplib2 google-auth-oauthlib
+    pip install --user pandas
+    pip install --user numpy
+
 """
+# SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly']
+# ID = "1nWL72i2fj6NKcKOMbsNIm_RFT8KPj3z4BuTUFvZV3EA"
 
 class validate():
     """
@@ -31,7 +42,7 @@ class validate():
         if (master_file_name == None):
             raise Exception("path to file containing current list of known links is required")
         self.API_KEY = API_KEY
-        self.FILE_NAME = master_file_name
+        self.FILE_NAME = "https://docs.google.com/spreadsheets/d/1nWL72i2fj6NKcKOMbsNIm_RFT8KPj3z4BuTUFvZV3EA/export?format=csv&gid=1497128994"
         #load master sheet
         self.youtube_links = self.get_links()
         self.api_base = "https://www.googleapis.com/youtube/v3/"
@@ -273,7 +284,7 @@ class validate():
         return base + str(key) + ", \n"
 
 
-v = validate(API_KEY="AIzaSyDNYxEhsbaDShcM8fobMhXdxb38c53M3kw", master_file_name = "Cameras_manual - Master.csv").playlist("https://www.youtube.com/playlist?list=PLwygboCFkeeA2w1fzJm44swdG-NnyB6ip", save_links_to_file = True)
+v = validate(API_KEY="AIzaSyCQRETF9glxHrmyttRC0JH4_X7ClY-05Cs", master_file_name = "Cameras_manual - Master.csv").playlist("https://www.youtube.com/playlist?list=PLwygboCFkeeA2w1fzJm44swdG-NnyB6ip", save_links_to_file = True)
 #v = validate(API_KEY = None, master_file_name = "Cameras_manual - Master.csv").playlist("https://www.youtube.com/playlist?list=PLwygboCFkeeA2w1fzJm44swdG-NnyB6ip", save_links_to_file = True)
 print(len(v))
 

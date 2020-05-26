@@ -4,9 +4,20 @@ import json
 import pandas as pd
 import re
 
+import pickle
+
+
 """
-need to enable the API in the google cloud platform
+need to enable the API in the google cloud platform: 
+
+Installs: 
+    not neaded -> pip install --upgrade google-api-python-client google-auth-httplib2 google-auth-oauthlib
+    pip install --user pandas
+    pip install --user numpy
+
 """
+# SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly']
+# ID = "1nWL72i2fj6NKcKOMbsNIm_RFT8KPj3z4BuTUFvZV3EA"
 
 class validate():
     """
@@ -31,11 +42,12 @@ class validate():
         if (master_file_name == None):
             raise Exception("path to file containing current list of known links is required")
         self.API_KEY = API_KEY
-        self.FILE_NAME = master_file_name
+        self.FILE_NAME = "https://docs.google.com/spreadsheets/d/1nWL72i2fj6NKcKOMbsNIm_RFT8KPj3z4BuTUFvZV3EA/export?format=csv&gid=1497128994"
         #load master sheet
         self.youtube_links = self.get_links()
         self.api_base = "https://www.googleapis.com/youtube/v3/"
         self.forbidden = False
+        self.new_links = {}
         pass 
 
     def link_key(self, link):
@@ -141,6 +153,7 @@ class validate():
             prev_page = items["prevPageToken"]
         except:
             prev_page = None
+
         try:
             for item in items["items"]:
                 id = self.__validate_link(item)
@@ -149,9 +162,10 @@ class validate():
                 print(id)  
         except:
             keys = keys
+        self.check_livestream(keys)
         return next_page, prev_page, total_items, items, keys
 
-    def check_livestream(self, id):
+    def __check_livestream(self, keys):
         """
         Purpose: 
             check to ensure the video link provided is a live stream
@@ -162,24 +176,36 @@ class validate():
         Returns:
             id (str or None): return id if the link is a live stream, None if it is not
         """
-        id_search = f"videos?part=liveStreamingDetails&id={id}&key={self.API_KEY}"
+        keys = list(keys)
+        req_size = 50
+        key_str = ",".join(keys)
+
+        print (key_str)
+        id_search = f"videos?part=liveStreamingDetails&id={key_str}&key={self.API_KEY}"
         search = requests.get(self.api_base + id_search)
 
+        print(search.ok, search.reason)
+        print(type(search.json()["items"]))
         # check that the search request is ok
-        if not search.ok:
-            print(search.reason)
-            self.forbidden = True
-            raise Exception("API Request Limit Exceeded, Change the Limit in Google Cloud")
+        # if not search.ok:
+        #     print(search.reason)
+        #     self.forbidden = True
+        #     raise Exception("API Request Limit Exceeded, Change the Limit in Google Cloud")
 
-        search = search.json()
-        try:
-            if "liveStreamingDetails" in search["items"][0].keys():
-                return id
-            else:
-                return None
-        except:
-            return None
-        return id
+        # search = search.json()
+        # try:
+        #     if "liveStreamingDetails" in search["items"][0].keys():
+        #         return id
+        #     else:
+        #         return None
+        # except:
+        #     return None
+        return #id
+
+    def check_livestream(self, id = None, item = None):
+        if (type(id) != type(None)):
+        
+        return
 
     def __validate_link(self, item):
         """
@@ -197,7 +223,7 @@ class validate():
         if str(id) in self.youtube_links:
             print("already used")
             return None
-        return self.check_livestream(id)
+        return id #self.check_livestream(id)
 
     def playlist(self, url, save_links_to_file = False):
         """
@@ -228,6 +254,7 @@ class validate():
             keys += key
 
         keys = set(keys)
+        self.check_livestream(keys)
         if save_links_to_file and not self.forbidden: 
             return self.construct_csv(keys, id = id)
         return keys
@@ -273,7 +300,9 @@ class validate():
         return base + str(key) + ", \n"
 
 
-v = validate(API_KEY="AIzaSyDNYxEhsbaDShcM8fobMhXdxb38c53M3kw", master_file_name = "Cameras_manual - Master.csv").playlist("https://www.youtube.com/playlist?list=PLwygboCFkeeA2w1fzJm44swdG-NnyB6ip", save_links_to_file = True)
+#v = validate(API_KEY="AIzaSyCQRETF9glxHrmyttRC0JH4_X7ClY-05Cs", master_file_name = "Cameras_manual - Master.csv").playlist("https://www.youtube.com/playlist?list=PLwygboCFkeeA2w1fzJm44swdG-NnyB6ip")
+v = validate(API_KEY="AIzaSyDNYxEhsbaDShcM8fobMhXdxb38c53M3kw", master_file_name = "Cameras_manual - Master.csv").playlist("https://www.youtube.com/playlist?list=PLwygboCFkeeA2w1fzJm44swdG-NnyB6ip")
+
 #v = validate(API_KEY = None, master_file_name = "Cameras_manual - Master.csv").playlist("https://www.youtube.com/playlist?list=PLwygboCFkeeA2w1fzJm44swdG-NnyB6ip", save_links_to_file = True)
 print(len(v))
 
