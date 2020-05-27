@@ -9,6 +9,7 @@ import pickle
 
 """
 need to enable the API in the google cloud platform: 
+# move to team github
 
 Installs: 
     not neaded -> pip install --upgrade google-api-python-client google-auth-httplib2 google-auth-oauthlib
@@ -162,7 +163,7 @@ class validate():
                 print(id)  
         except:
             keys = keys
-        self.check_livestream(keys)
+        keys = self.__check_livestream(keys)
         return next_page, prev_page, total_items, items, keys
 
     def __check_livestream(self, keys):
@@ -180,31 +181,35 @@ class validate():
         req_size = 50
         key_str = ",".join(keys)
 
-        print (key_str)
+        #print (key_str)
         id_search = f"videos?part=liveStreamingDetails&id={key_str}&key={self.API_KEY}"
         search = requests.get(self.api_base + id_search)
 
-        print(search.ok, search.reason)
-        print(type(search.json()["items"]))
-        # check that the search request is ok
-        # if not search.ok:
-        #     print(search.reason)
-        #     self.forbidden = True
-        #     raise Exception("API Request Limit Exceeded, Change the Limit in Google Cloud")
+        #print(search.ok, search.reason)
+        searches = search.json()["items"]
+        #print(type(searches))
 
-        # search = search.json()
-        # try:
-        #     if "liveStreamingDetails" in search["items"][0].keys():
-        #         return id
-        #     else:
-        #         return None
-        # except:
-        #     return None
-        return #id
+        keys = []
+        for item in searches: 
+            temp = self.check_livestream(item = item)
+            if temp != None:
+                keys.append(temp)
+        return keys
 
-    def check_livestream(self, id = None, item = None):
-        if (type(id) != type(None)):
+    def check_livestream(self, item = None, id = None):
+        if (type(item) == type(None)):
+            print("soon to implement")
+            id_search = f"videos?part=liveStreamingDetails&id={id}&key={self.API_KEY}"
+            search = requests.get(self.api_base + id_search)
+            search = search.json()
+            item = search["items"][0].keys()
         
+        #print(item)
+        id = item["id"] 
+        if "liveStreamingDetails" in item.keys():
+            return id
+        else:
+            return None
         return
 
     def __validate_link(self, item):
@@ -254,7 +259,7 @@ class validate():
             keys += key
 
         keys = set(keys)
-        self.check_livestream(keys)
+
         if save_links_to_file and not self.forbidden: 
             return self.construct_csv(keys, id = id)
         return keys
@@ -300,8 +305,8 @@ class validate():
         return base + str(key) + ", \n"
 
 
-#v = validate(API_KEY="AIzaSyCQRETF9glxHrmyttRC0JH4_X7ClY-05Cs", master_file_name = "Cameras_manual - Master.csv").playlist("https://www.youtube.com/playlist?list=PLwygboCFkeeA2w1fzJm44swdG-NnyB6ip")
-v = validate(API_KEY="AIzaSyDNYxEhsbaDShcM8fobMhXdxb38c53M3kw", master_file_name = "Cameras_manual - Master.csv").playlist("https://www.youtube.com/playlist?list=PLwygboCFkeeA2w1fzJm44swdG-NnyB6ip")
+v = validate(API_KEY="AIzaSyCQRETF9glxHrmyttRC0JH4_X7ClY-05Cs", master_file_name = "Cameras_manual - Master.csv").playlist("https://www.youtube.com/playlist?list=PLwygboCFkeeA2w1fzJm44swdG-NnyB6ip")
+#v = validate(API_KEY="AIzaSyDNYxEhsbaDShcM8fobMhXdxb38c53M3kw", master_file_name = "Cameras_manual - Master.csv").playlist("https://www.youtube.com/playlist?list=PLwygboCFkeeA2w1fzJm44swdG-NnyB6ip")
 
 #v = validate(API_KEY = None, master_file_name = "Cameras_manual - Master.csv").playlist("https://www.youtube.com/playlist?list=PLwygboCFkeeA2w1fzJm44swdG-NnyB6ip", save_links_to_file = True)
 print(len(v))
